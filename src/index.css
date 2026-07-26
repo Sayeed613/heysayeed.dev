@@ -2,32 +2,19 @@
 
 /* ─── Design Tokens ─────────────────────────────────────── */
 @theme {
-  /* Backgrounds */
   --color-editor-bg: #0b0e14;
   --color-editor-surface: #1b2a44;
   --color-editor-gutter: #1a1e28;
-
-  /* Accent — electric green (primary) */
-  --color-accent: #3ddc97;
-  --color-accent-dim: rgba(61, 220, 151, 0.15);
-
-  /* Accent — warm orange (secondary, CTA only) */
-  --color-accent-secondary: #ff7a45;
-  --color-accent-secondary-dim: rgba(255, 122, 69, 0.15);
-
-  /* Text */
+  --color-accent: #22d3ee;
+  --color-accent-dim: rgba(34, 211, 238, 0.15);
+  --color-accent-secondary: #818cf8;
+  --color-accent-secondary-dim: rgba(129, 140, 248, 0.15);
   --color-text-primary: #e6e6e6;
   --color-text-muted: #6b7280;
-
-  /* Borders */
   --color-border-subtle: rgba(255, 255, 255, 0.12);
-
-  /* Fonts */
   --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
   --font-display: "Space Grotesk", system-ui, sans-serif;
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-  /* Motion */
   --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
   --duration-base: 0.4s;
   --duration-fast: 0.2s;
@@ -35,57 +22,111 @@
 }
 
 /* ─── Global Reset ──────────────────────────────────────── */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: auto;
-}
-
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: auto; }
 body {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   background-color: var(--color-editor-bg);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
-  font-size: 16px;
-  line-height: 1.6;
+  font-size: 16px; line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-
 #root {
   min-height: 100svh;
   display: flex;
   flex-direction: column;
 }
-
 ::selection {
   background: var(--color-accent-dim);
   color: var(--color-text-primary);
 }
-
-/* ─── Utility Classes ───────────────────────────────────── */
-.font-display {
-  font-family: var(--font-display);
-}
+.font-display { font-family: var(--font-display); }
 
 /* ─── Blinking cursor ──────────────────────────────────── */
 @keyframes cursor-blink {
-  0%, 50% {
-    opacity: 1;
-  }
-  51%, 100% {
-    opacity: 0;
-  }
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
-.hero-cursor {
-  opacity: 0;
-}
+.hero-cursor { opacity: 0; }
 .hero-cursor.active {
   opacity: 1;
-  animation: cursor-blink 1s step-end infinite;
+  animation: cursor-blink 700ms step-end infinite;
+}
+
+/* ─── Scanning line — thin bars moving left/right ─────── */
+@keyframes scan-line {
+  0% { transform: translateX(-100%); opacity: 0; }
+  10% { opacity: 0.6; }
+  50% { opacity: 0.3; }
+  90% { opacity: 0.6; }
+  100% { transform: translateX(400%); opacity: 0; }
+}
+.scan-bar {
+  animation: scan-line 3s ease-in-out infinite;
+}
+.scan-bar:nth-child(2n) { animation-delay: 0.5s; animation-duration: 3.5s; }
+.scan-bar:nth-child(3n) { animation-delay: 1s; animation-duration: 2.8s; }
+.scan-bar:nth-child(5n) { animation-delay: 0.2s; animation-duration: 4s; }
+
+/* ─── Status dot slow pulse (2s cycle) ─────────────────── */
+@keyframes status-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.6; }
+}
+.status-dot {
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+/* ─── Scanner bar sweep ───────────────────────────────── */
+@keyframes scanner-sweep {
+  0%   { transform: translateX(-30px); opacity: 0; }
+  15%  { opacity: 0.35; }
+  50%  { opacity: 0.08; }
+  85%  { opacity: 0.35; }
+  100% { transform: translateX(calc(100vw + 30px)); opacity: 0; }
+}
+.scanner-bar {
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  height: 16px;
+  border-radius: 999px;
+  background: linear-gradient(to top, transparent, rgba(34, 211, 238, 0.25), transparent);
+  animation: scanner-sweep 7s ease-in-out infinite;
+  filter: blur(0.5px);
+}
+
+/* ─── Glow pulse for selection highlight ───────────────── */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.12; }
+  50% { opacity: 0.25; }
+}
+.glow-pulse {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+/* ─── Border pulse for corner brackets ─────────────────── */
+@keyframes border-pulse {
+  0%, 100% { border-color: rgba(34, 211, 238, 0.4); }
+  50% { border-color: rgba(34, 211, 238, 0.8); }
+}
+.border-pulse {
+  animation: border-pulse 2s ease-in-out infinite;
+}
+
+/* ─── Badge float loop ─────────────────────────────────── */
+@keyframes badge-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+.badge-float {
+  animation: badge-float 3s ease-in-out 2s infinite;
+}
+
+/* ─── Fade in helper ───────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
