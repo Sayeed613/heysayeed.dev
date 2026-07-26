@@ -164,11 +164,11 @@ const SubheadingAnim = forwardRef<SubheadingHandle, Props>(
           {/* Selection border */}
           <div
             className="absolute inset-0 border-2 pointer-events-none"
-            style={{
+                      style={{
               borderColor:
                 phase === "grabbed"
-                  ? "rgba(129,140,248,0.5)"
-                  : "rgba(34,211,238,0.4)",
+                  ? "rgba(156,163,175,0.5)" // gray-400
+                  : "rgba(107,114,128,0.4)", // gray-500
               borderStyle: "dashed",
             }}
           />
@@ -180,10 +180,16 @@ const SubheadingAnim = forwardRef<SubheadingHandle, Props>(
           <span className="absolute -bottom-[5px] -right-[5px] w-[9px] h-[9px] border-2 border-accent bg-editor-bg" />
 
           {/* "do not drag" badge */}
-          <div className="absolute -top-[11px] left-0 right-0 z-10 flex items-center px-5">
-            <DragChip visible={dragChipReady} />
-            <div className="flex-1 border-t border-dashed border-border-subtle/40 ml-2" />
-          </div>
+          <motion.div
+            className="absolute -top-[24px] left-2 z-10"
+            initial={{ opacity: 0, x: -8 }}
+            animate={dragChipReady ? { opacity: 1, x: 0 } : {}}
+            transition={{ type: "spring", stiffness: 200, damping: 18, delay: 0.1 }}
+          >
+            <span className="inline-flex items-center px-2 py-0.5 text-[9px] font-mono tracking-wider text-text-muted bg-editor-bg border border-border-subtle rounded-[2px] select-none">
+              do not drag
+            </span>
+          </motion.div>
 
           {/* Subtext — initial={false} to prevent replay on remount */}
           <motion.p

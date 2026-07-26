@@ -69,11 +69,21 @@ export default function FloatingNav() {
             e.preventDefault();
             setActive("Contact");
           }}
-          className={`px-4 py-1.5 text-[13px] font-mono leading-none rounded-full transition-all duration-200 ${
-            active === "Contact"
-              ? "bg-text-primary text-editor-bg shadow-sm"
-              : "bg-text-primary text-editor-bg hover:brightness-110"
+          className={`relative overflow-hidden px-4 py-1.5 text-[13px] font-mono leading-none rounded-full bg-text-primary text-editor-bg ${
+            active === "Contact" ? "shadow-sm ring-1 ring-accent/40" : ""
           }`}
+          style={{
+            background: "linear-gradient(120deg, #E6E6E6 0%, #E6E6E6 35%, rgba(255,255,255,0.5) 50%, #E6E6E6 65%, #E6E6E6 100%)",
+            backgroundSize: "250% 100%",
+            backgroundPosition: "100% 0",
+            transition: "background-position 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.backgroundPosition = "0% 0";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.backgroundPosition = "100% 0";
+          }}
         >
           Contact
         </a>

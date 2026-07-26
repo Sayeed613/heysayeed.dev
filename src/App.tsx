@@ -7,6 +7,8 @@ import HeadlineAnim from "./components/HeadlineAnim";
 import SubheadingAnim from "./components/SubheadingAnim";
 import VisitorCursor from "./components/VisitorCursor";
 import SayeedCursor from "./components/SayeedCursor";
+import BackgroundGrid from "./components/BackgroundGrid";
+import SyntaxTokens from "./components/SyntaxTokens";
 import type { SubheadingHandle } from "./components/SubheadingAnim";
 
 const SARCASM_MESSAGES = [
@@ -194,7 +196,7 @@ function App() {
     };
   }, []);
 
-  // ─── GSAP entrance animations ────────────────────────
+  // ─── GSAP entrance animations + continuous float ────
   const handleSubReady = useCallback(() => {
     document.querySelector(".glow-target")?.classList.add("glow-pulse");
     document.querySelectorAll(".border-target").forEach((el) => el.classList.add("border-pulse"));
@@ -222,13 +224,75 @@ function App() {
     tl.to(ctaSecondaryRef.current, { y: 0, opacity: 1, duration: 0.4 }, "-=0.1");
     tl.to([cornerLeftRef.current, cornerRightRef.current], { opacity: 1, duration: 0.5 }, ">");
 
-    return () => tl.kill();
+    // After entrance completes — start continuous float animations
+    const floatTweens: gsap.core.Tween[] = [];
+
+    tl.call(() => {
+      // Badge float — skip GSAP, let CSS badge-float handle it
+
+      // CTA primary float
+      floatTweens.push(
+        gsap.to(ctaPrimaryRef.current, {
+          y: -3,
+          duration: 4,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+          delay: Math.random() * 1.5,
+        }),
+      );
+
+      // CTA secondary float
+      floatTweens.push(
+        gsap.to(ctaSecondaryRef.current, {
+          y: -2,
+          duration: 4.5,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+          delay: Math.random() * 2,
+        }),
+      );
+
+      // Corner left float
+      floatTweens.push(
+        gsap.to(cornerLeftRef.current, {
+          y: -2,
+          duration: 5,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+          delay: Math.random() * 2.5,
+        }),
+      );
+
+      // Corner right float
+      floatTweens.push(
+        gsap.to(cornerRightRef.current, {
+          y: -2,
+          duration: 5.5,
+          ease: "sine.inOut",
+          yoyo: true,
+          repeat: -1,
+          delay: Math.random() * 3,
+        }),
+      );
+    });
+
+    return () => {
+      tl.kill();
+      floatTweens.forEach((t) => t.kill());
+    };
   }, []);
 
   return (
     <>
       <ChromeBar sayeedIdleRef={sayeedIdleRef} />
       <FloatingNav />
+
+      {/* ─── Background layers ──────────────────────────── */}
+      <BackgroundGrid />
+      <SyntaxTokens />
 
       {/* ─── Global cursors (render above everything) ──── */}
       <VisitorCursor />
@@ -238,8 +302,6 @@ function App() {
         phase={sayeedPhase}
         message={sarcasmMsg}
       />
-
-      <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true" />
 
       <section
         id="home"
@@ -273,20 +335,44 @@ function App() {
 
           {/* CTAs */}
           <div className="flex items-center justify-center gap-4 flex-wrap">
-            <a
+            <motion.a
               ref={ctaPrimaryRef}
               href="#work"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-accent-secondary text-[#0B0E14] text-sm font-mono font-medium hover:brightness-110 transition-all duration-200"
+              className="relative inline-flex items-center gap-2 px-6 py-3 rounded-md text-[#0B0E14] text-sm font-mono font-medium overflow-hidden"
+              style={{
+                background: "linear-gradient(120deg, #FF7A45 0%, #FF7A45 35%, rgba(255,255,255,0.2) 50%, #FF7A45 65%, #FF7A45 100%)",
+                backgroundSize: "250% 100%",
+                backgroundPosition: "100% 0",
+              }}
+              whileHover={{
+                backgroundPosition: "0% 0",
+                scale: 1.04,
+                transition: { type: "spring", stiffness: 350, damping: 15 },
+              }}
+              whileTap={{ scale: 0.97 }}
             >
               See the work <span className="text-lg leading-none">→</span>
-            </a>
-            <a
+            </motion.a>
+            <motion.a
               ref={ctaSecondaryRef}
               href="#contact"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-md border border-border-subtle text-text-muted text-sm font-mono font-medium hover:text-text-primary hover:border-white/25 transition-all duration-200"
+              className="relative inline-flex items-center gap-2 px-6 py-3 rounded-md border border-border-subtle text-text-muted text-sm font-mono font-medium overflow-hidden"
+              style={{
+                background: "linear-gradient(120deg, transparent 0%, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%, transparent 100%)",
+                backgroundSize: "250% 100%",
+                backgroundPosition: "100% 0",
+              }}
+              whileHover={{
+                backgroundPosition: "0% 0",
+                borderColor: "rgba(255,255,255,0.3)",
+                color: "#E6E6E6",
+                scale: 1.03,
+                transition: { type: "spring", stiffness: 350, damping: 15 },
+              }}
+              whileTap={{ scale: 0.97 }}
             >
               Book a call
-            </a>
+            </motion.a>
           </div>
 
           {/* Decorative rectangle */}

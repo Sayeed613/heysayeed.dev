@@ -130,3 +130,8 @@ body {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* ─── No hand cursor on interactive elements ──────────── */
+a, button, [role="button"], label, input, select, textarea, summary {
+  cursor: none !important;
+}
