@@ -28,7 +28,6 @@ type SayeedPhase = "idle" | "flying-to" | "returning" | "flying-back";
 
 function App() {
   const [dragChipReady, setDragChipReady] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
   const [sayeedPhase, setSayeedPhase] = useState<SayeedPhase>("idle");
   const [sarcasmMsg, setSarcasmMsg] = useState("");
 
@@ -98,7 +97,6 @@ function App() {
 
     // Disable further user drag
     handle.grab();
-    setIsDragging(false);
 
     // Record element's current center for position tracking
     const rect = handle.getRect();
@@ -173,7 +171,6 @@ function App() {
 
   // ─── Called when user starts dragging ────────────────
   const handleDragStart = useCallback(() => {
-    setIsDragging(true);
     interventionTimer.current = setTimeout(() => {
       triggerIntervention();
     }, 300);
@@ -185,7 +182,6 @@ function App() {
       clearTimeout(interventionTimer.current);
       interventionTimer.current = null;
     }
-    setIsDragging(false);
   }, []);
 
   // ─── Cleanup on unmount ──────────────────────────────
@@ -199,7 +195,6 @@ function App() {
   // ─── GSAP entrance animations + continuous float ────
   const handleSubReady = useCallback(() => {
     document.querySelector(".glow-target")?.classList.add("glow-pulse");
-    document.querySelectorAll(".border-target").forEach((el) => el.classList.add("border-pulse"));
     setDragChipReady(true);
   }, []);
 

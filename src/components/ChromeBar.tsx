@@ -135,7 +135,7 @@ export default function ChromeBar({ sayeedIdleRef }: ChromeBarProps) {
       <div className="flex items-center gap-2 shrink-0">
         {/* Logo mark */}
         <img
-          src="../../public/logo.png"
+          src="/logo.png"
           alt="logo"
           className="h-[14px] w-auto shrink-0"
         />

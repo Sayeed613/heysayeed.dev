@@ -55,21 +55,6 @@ body {
   animation: cursor-blink 700ms step-end infinite;
 }
 
-/* ─── Scanning line — thin bars moving left/right ─────── */
-@keyframes scan-line {
-  0% { transform: translateX(-100%); opacity: 0; }
-  10% { opacity: 0.6; }
-  50% { opacity: 0.3; }
-  90% { opacity: 0.6; }
-  100% { transform: translateX(400%); opacity: 0; }
-}
-.scan-bar {
-  animation: scan-line 3s ease-in-out infinite;
-}
-.scan-bar:nth-child(2n) { animation-delay: 0.5s; animation-duration: 3.5s; }
-.scan-bar:nth-child(3n) { animation-delay: 1s; animation-duration: 2.8s; }
-.scan-bar:nth-child(5n) { animation-delay: 0.2s; animation-duration: 4s; }
-
 /* ─── Status dot slow pulse (2s cycle) ─────────────────── */
 @keyframes status-pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
@@ -107,15 +92,6 @@ body {
   animation: glow-pulse 2.5s ease-in-out infinite;
 }
 
-/* ─── Border pulse for corner brackets ─────────────────── */
-@keyframes border-pulse {
-  0%, 100% { border-color: rgba(34, 211, 238, 0.4); }
-  50% { border-color: rgba(34, 211, 238, 0.8); }
-}
-.border-pulse {
-  animation: border-pulse 2s ease-in-out infinite;
-}
-
 /* ─── Badge float loop ─────────────────────────────────── */
 @keyframes badge-float {
   0%, 100% { transform: translateY(0); }
@@ -123,12 +99,6 @@ body {
 }
 .badge-float {
   animation: badge-float 3s ease-in-out 2s infinite;
-}
-
-/* ─── Fade in helper ───────────────────────────────────── */
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 /* ─── No hand cursor on interactive elements ──────────── */

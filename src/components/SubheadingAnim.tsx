@@ -7,7 +7,6 @@ import {
   animate,
   type MotionValue,
 } from "framer-motion";
-import DragChip from "./DragChip";
 
 export interface SubheadingHandle {
   getRect: () => DOMRect | null;
