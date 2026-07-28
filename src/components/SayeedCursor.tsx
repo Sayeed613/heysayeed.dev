@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
-import type { MotionValue } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
+
+const ARROW_SIZE = 28;
+const SAYEED_COLOR = "#FF8A65";
 
 interface SayeedCursorProps {
   springX: MotionValue<number>;
@@ -13,104 +15,76 @@ export default function SayeedCursor({ springX, springY, phase, message }: Sayee
   const showBubble = phase === "returning";
   const isActive = phase !== "idle";
 
-  // Velocity drift for the speech bubble
-  const bubbleDriftX = useMotionValue(0);
-  const bubbleDriftY = useMotionValue(0);
-  const springDriftX = useSpring(bubbleDriftX, { stiffness: 80, damping: 10, mass: 0.6 });
-  const springDriftY = useSpring(bubbleDriftY, { stiffness: 80, damping: 10, mass: 0.6 });
-  const prevX = useRef(0);
-  const prevY = useRef(0);
+  const arrowX = useSpring(springX, { stiffness: 380, damping: 32, mass: 0.6 });
+  const arrowY = useSpring(springY, { stiffness: 380, damping: 32, mass: 0.6 });
+  const labelX = useSpring(springX, { stiffness: 220, damping: 26, mass: 0.7 });
+  const labelY = useSpring(springY, { stiffness: 220, damping: 26, mass: 0.7 });
+
+  const labelTiltTarget = useMotionValue(0);
+  const labelRotation = useSpring(labelTiltTarget, { stiffness: 200, damping: 24, mass: 0.6 });
+  const lastSample = useRef<{ x: number; y: number; t: number } | null>(null);
 
   useEffect(() => {
-    const unsubX = springX.on("change", (latest) => {
-      const dx = latest - prevX.current;
-      prevX.current = latest;
-      bubbleDriftX.set(dx * 2);
+    const unsubscribe = arrowX.on("change", (x) => {
+      const y = arrowY.get();
+      const now = typeof performance !== "undefined" ? performance.now() : Date.now();
+      const last = lastSample.current;
+      let vx = 0, vy = 0;
+      if (last) {
+        const dt = Math.max(1, now - last.t);
+        vx = ((x - last.x) / dt) * 1000;
+        vy = ((y - last.y) / dt) * 1000;
+      }
+      lastSample.current = { x, y, t: now };
+      const speed = Math.hypot(vx, vy);
+      const norm = Math.min(1, speed / 1500);
+      const sign = vx === 0 ? 0 : vx > 0 ? 1 : -1;
+      labelTiltTarget.set(sign * norm * 25);
     });
-    const unsubY = springY.on("change", (latest) => {
-      const dy = latest - prevY.current;
-      prevY.current = latest;
-      bubbleDriftY.set(dy * 2);
-    });
-    return () => { unsubX(); unsubY(); };
-  }, [springX, springY, bubbleDriftX, bubbleDriftY]);
+    return unsubscribe;
+  }, [arrowX, arrowY, labelTiltTarget]);
+
+  const labelTranslateX = useTransform(labelX, (v) => v + ARROW_SIZE * 0.9);
+  const labelTranslateY = useTransform(labelY, (v) => v + ARROW_SIZE * 0.2 + 6);
+  const bubbleX = useSpring(labelTranslateX, { stiffness: 150, damping: 18, mass: 0.8 });
+  const bubbleY = useSpring(labelTranslateY, { stiffness: 150, damping: 18, mass: 0.8 });
 
   return (
-    <motion.div
-      className="fixed pointer-events-none z-[9998] select-none"
-      style={{ left: springX, top: springY, x: 1, y: 1 }}
-      initial={{ opacity: 1 }}
-      animate={{ opacity: 1 }}
-    >
-      {/* Outlined triangle cursor — blue border, white inside */}
-      <svg
-        width="16"
-        height="20"
-        viewBox="0 0 16 20"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.4))" }}
-      >
-        <path
-          d="M2 1L15 10L2 19Z"
-          fill="white"
-          stroke="#3B82F6"
-          strokeWidth="2"
-          strokeLinejoin="round"
-        />
-      </svg>
+    <CursorLayer visible={true} arrowX={arrowX} arrowY={arrowY}
+      labelX={labelTranslateX} labelY={labelTranslateY} labelRotation={labelRotation}
+      bubbleX={bubbleX} bubbleY={bubbleY} showBubble={showBubble} message={message}
+      color={isActive ? SAYEED_COLOR : "rgba(107,114,128,.6)"}
+      textColor={isActive ? "#fff" : "rgba(156,163,175,.9)"} label="Sayeed" />
+  );
+}
 
-      {/* Identity badge — orange #FF5A1F */}
-      <div
-        className="absolute left-4 top-full mt-1  shadow-md whitespace-nowrap transition-all duration-300 h-3.5"
+interface CursorLayerProps {
+  visible: boolean; arrowX: MotionValue<number>; arrowY: MotionValue<number>;
+  labelX: MotionValue<number>; labelY: MotionValue<number>;
+  bubbleX: MotionValue<number>; bubbleY: MotionValue<number>;
+  labelRotation: MotionValue<number>; color: string; textColor: string; label: string;
+  showBubble: boolean; message: string;
+}
 
-      >
-        <span
-          className={`text-[11px] font-bold leading-none tracking-wide px-2 py-1 rounded-md ${
-            isActive ? "text-white" : "text-text-muted"
-          }`}
-          style={{
-          backgroundColor: isActive ? "#FF5A1F" : "rgba(107, 114, 128, 0.6)",
-          boxShadow: isActive ? "0 2px 6px rgba(255, 90, 31, 0.35)" : "none",
-        }}
-        >
-          Sayeed
-        </span>
-      </div>
-
-      {/* iMessage-style speech bubble */}
+function CursorLayer({ visible, arrowX, arrowY, labelX, labelY, bubbleX, bubbleY, labelRotation, color, textColor, label, showBubble, message }: CursorLayerProps) {
+  return (
+    <div className="pointer-events-none fixed inset-0 z-[9999]" style={{ pointerEvents: "none" }}>
+      <motion.div style={{ position: "absolute", top: 0, left: 0, x: labelX, y: labelY, rotate: labelRotation, display: "flex", alignItems: "center", justifyContent: "center", height: 24, minWidth: 48, paddingInline: 8, background: color, borderRadius: 6, boxShadow: "0 2px 8px rgba(0,0,0,.18)", opacity: visible ? 1 : 0 }}>
+        <span style={{ color: textColor, fontSize: 11, fontWeight: 700, lineHeight: "11px", transform: "translateY(-0.5px)", whiteSpace: "nowrap" }}>{label}</span>
+      </motion.div>
       <AnimatePresence>
         {showBubble && (
-          <motion.div
-            key="sayeed-bubble"
-            initial={{ opacity: 0, scale: 0.9, y: 6 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 6 }}
-            transition={{ type: "spring", stiffness: 300, damping: 22, mass: 0.6 }}
-            className="absolute left-3 top-full mt-10 px-3 py-2 rounded-[14px] shadow-xl whitespace-nowrap"
-            style={{
-              x: springDriftX,
-              y: springDriftY,
-              backgroundColor: "#ffffff",
-              maxWidth: "180px",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.18), 0 1px 3px rgba(0,0,0,0.08)",
-            }}
-          >
-            <span className="text-[#1a1a2e] text-[13px] font-medium leading-snug tracking-normal block">
-              {message}
-            </span>
-            {/* Tail */}
-            <div
-              className="absolute top-0 left-3 -mt-[6px] w-0 h-0"
-              style={{
-                borderLeft: "6px solid transparent",
-                borderRight: "6px solid transparent",
-                borderBottom: "6px solid #ffffff",
-              }}
-            />
+          <motion.div initial={{ opacity: 0, scale: 0.9, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 8 }} transition={{ duration: 0.18 }}
+            style={{ position: "absolute", top: 0, left: 0, x: bubbleX, y: useTransform(bubbleY, (v) => v + 48), background: "#ffffff", borderRadius: 8, padding: "10px 14px", maxWidth: 240, boxShadow: "0 12px 32px rgba(0,0,0,.18)", transformOrigin: "top left" }}>
+            <div style={{ fontSize: 13, lineHeight: 1.35, color: "#111827", fontWeight: 500 }}>{message}</div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+      <motion.div style={{ position: "absolute", top: 0, left: 0, x: arrowX, y: arrowY, opacity: visible ? 1 : 0 }}>
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M5 3 L23 14 L14 16 L11 24 Z" fill={color} stroke="rgba(0,0,0,.18)" strokeWidth=".6" strokeLinejoin="round" />
+        </svg>
+      </motion.div>
+    </div>
   );
 }

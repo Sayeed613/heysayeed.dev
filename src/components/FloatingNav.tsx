@@ -15,16 +15,10 @@ export default function FloatingNav() {
       id="floating-nav"
       className="fixed top-[52px] left-1/2 -translate-x-1/2 z-40 flex items-center justify-center w-full  px-4"
     >
-      {/* Left metadata — absolutely positioned so pill stays centered */}
-      <div className="absolute left-4 flex items-center gap-2 border-1 rounded-4xl px-3 py-1.5">
-        <span className="w-1.5 h-1.5 rounded-full bg-accent status-dot" />
-        <span className="text-text-muted text-[11px] font-mono leading-none tracking-wide">
-          available for remote work
-        </span>
-      </div>
+
 
       {/* Nav pill with layoutId */}
-      <div className="relative flex items-center gap-1 mx-auto px-2 py-1.5 rounded-full bg-[rgba(17,20,28,0.85)] backdrop-blur-md border border-border-subtle shadow-lg shadow-black/20">
+      <div className="relative flex items-center gap-1 mx-auto px-2 py-1.5 rounded-full bg-[#141414]/90 backdrop-blur-md border border-border-subtle shadow-lg shadow-black/40">
         {NAV_LINKS.map((link) => (
           <a
             key={link.label}
@@ -35,7 +29,7 @@ export default function FloatingNav() {
             }}
             className={`group relative px-3.5 py-1.5 text-[13px] font-mono leading-none rounded-full transition-colors duration-200 overflow-hidden ${
               active === link.label
-                ? "text-[#0B0E14]"
+                ? "text-white"
                 : "text-text-muted hover:text-text-primary"
             }`}
           >
@@ -69,11 +63,11 @@ export default function FloatingNav() {
             e.preventDefault();
             setActive("Contact");
           }}
-          className={`relative overflow-hidden px-4 py-1.5 text-[13px] font-mono leading-none rounded-full bg-text-primary text-editor-bg ${
-            active === "Contact" ? "shadow-sm ring-1 ring-accent/40" : ""
+          className={`relative overflow-hidden px-4 py-1.5 text-[13px] font-mono leading-none rounded-full bg-accent text-white ${
+            active === "Contact" ? "shadow-sm ring-1 ring-white/20" : ""
           }`}
           style={{
-            background: "linear-gradient(120deg, #E6E6E6 0%, #E6E6E6 35%, rgba(255,255,255,0.5) 50%, #E6E6E6 65%, #E6E6E6 100%)",
+            background: "linear-gradient(120deg, #DC2626 0%, #DC2626 35%, rgba(220,38,38,0.6) 50%, #DC2626 65%, #DC2626 100%)",
             backgroundSize: "250% 100%",
             backgroundPosition: "100% 0",
             transition: "background-position 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease",
@@ -89,12 +83,7 @@ export default function FloatingNav() {
         </a>
       </div>
 
-      {/* Right metadata — absolutely positioned so pill stays centered */}
-      <div className="hidden md:absolute md:flex right-4 items-center justify-end border-1 rounded-4xl px-3 py-1.5">
-        <span className="text-text-muted text-[11px]   text-center  font-mono leading-none tracking-wide">
-          hey@heysayeed.dev
-        </span>
-      </div>
+
     </nav>
   );
 }

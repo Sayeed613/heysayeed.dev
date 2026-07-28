@@ -39,7 +39,7 @@ const subVariants = {
 
 function HighlightText() {
   return (
-    <span className="glow-target relative inline-block rounded-[6px] bg-accent-dim px-1">
+    <span className="glow-target relative inline-block rounded-[6px] bg-accent-dim/30 px-1">
       <span className="relative z-10">production React apps</span>
     </span>
   );
@@ -196,7 +196,7 @@ const SubheadingAnim = forwardRef<SubheadingHandle, Props>(
             initial={false}
             animate="visible"
             onAnimationComplete={() => { onGlowReady?.(); }}
-            className="text-[rgba(255,255,255,0.72)] text-md sm:text-lg md:text-[24px] font-[400] leading-[1.45] tracking-[-0.02em] px-5 pt-6 pb-4 select-none"
+            className="text-[rgba(240,240,240,0.8)] text-md sm:text-lg md:text-[24px] font-[400] leading-[1.45] tracking-[-0.02em] px-5 pt-6 pb-4 select-none"
             style={{
               fontFamily: "Inter, system-ui, sans-serif",
               WebkitFontSmoothing: "antialiased",
@@ -205,7 +205,7 @@ const SubheadingAnim = forwardRef<SubheadingHandle, Props>(
               y: springPY,
             }}
             whileHover={{
-              color: "rgba(255,255,255,0.8)",
+              color: "rgba(240,240,240,1)",
               transition: { duration: 0.25, ease: "easeOut" },
             }}
           >

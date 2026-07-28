@@ -2,8 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useMotionValue, useSpring, animate } from "framer-motion";
 import gsap from "gsap";
 import ChromeBar from "./components/ChromeBar";
-import FloatingNav from "./components/FloatingNav";
-import HeadlineAnim from "./components/HeadlineAnim";
+import AnimatedHeadline from "./components/AnimatedHeadline";
+import MagneticButton from "./components/MagneticButton";
 import SubheadingAnim from "./components/SubheadingAnim";
 import VisitorCursor from "./components/VisitorCursor";
 import SayeedCursor from "./components/SayeedCursor";
@@ -32,8 +32,6 @@ function App() {
   const [sarcasmMsg, setSarcasmMsg] = useState("");
 
   const badgeRef = useRef<HTMLDivElement>(null);
-  const ctaPrimaryRef = useRef<HTMLAnchorElement>(null);
-  const ctaSecondaryRef = useRef<HTMLAnchorElement>(null);
   const cornerLeftRef = useRef<HTMLDivElement>(null);
   const cornerRightRef = useRef<HTMLDivElement>(null);
   const sayeedIdleRef = useRef<HTMLDivElement>(null);
@@ -47,7 +45,7 @@ function App() {
   const sayeedSpringX = useSpring(sayeedX, { stiffness: 200, damping: 22 });
   const sayeedSpringY = useSpring(sayeedY, { stiffness: 200, damping: 22 });
 
-  // Original element center at grab time (used for tracking during return)
+  // Original element center at grab time
   const origCenterRef = useRef({ x: 0, y: 0 });
 
   // ─── Set cursor: none on mount ───────────────────────
@@ -70,13 +68,11 @@ function App() {
     return () => window.removeEventListener("resize", initSayeed);
   }, [sayeedX, sayeedY]);
 
-  // ─── Pick random sarcasm message ─────────────────────
   const pickMessage = useCallback(() => {
     const i = Math.floor(Math.random() * SARCASM_MESSAGES.length);
     setSarcasmMsg(SARCASM_MESSAGES[i]);
   }, []);
 
-  // ─── Fly Sayeed back to idle ─────────────────────────
   const flySayeedToIdle = useCallback(() => {
     if (!sayeedIdleRef.current) return;
     const rect = sayeedIdleRef.current.getBoundingClientRect();
@@ -90,15 +86,10 @@ function App() {
     });
   }, [sayeedX, sayeedY]);
 
-  // ─── Grab + return sequence ──────────────────────────
   const doGrab = useCallback(() => {
     const handle = subheadingRef.current;
     if (!handle) return;
-
-    // Disable further user drag
     handle.grab();
-
-    // Record element's current center for position tracking
     const rect = handle.getRect();
     const offset = handle.getDragOffset();
     if (rect) {
@@ -107,18 +98,12 @@ function App() {
         y: rect.top + rect.height / 2 - offset.y,
       };
     }
-
-    // Jump Sayeed to element's current position (with offset)
     const elCenterX = origCenterRef.current.x + offset.x;
     const elCenterY = origCenterRef.current.y + offset.y;
     sayeedX.jump(elCenterX + 24);
     sayeedY.jump(elCenterY - 12);
-
-    // Pick random message
     pickMessage();
     setSayeedPhase("returning");
-
-    // Subscribe to drag tracking — Sayeed follows the element back
     const sbX = handle.dragX.on("change", (val: number) => {
       sayeedX.set(origCenterRef.current.x + val + 24);
     });
@@ -126,57 +111,37 @@ function App() {
       sayeedY.set(origCenterRef.current.y + val - 12);
     });
     unsubDrag.current = () => { sbX(); sbY(); };
-
-    // Animate element back to origin with spring
     handle.animateToOrigin(() => {
-      // Return complete — cleanup tracking, fly Sayeed back
       if (unsubDrag.current) unsubDrag.current();
       unsubDrag.current = null;
-
-      // Brief pause, then Sayeed returns to navbar
       setTimeout(flySayeedToIdle, 500);
     });
   }, [sayeedX, sayeedY, pickMessage, flySayeedToIdle]);
 
-  // ─── Trigger intervention after 300ms delay ──────────
   const triggerIntervention = useCallback(() => {
     if (!sayeedIdleRef.current) return;
-
     const idleRect = sayeedIdleRef.current.getBoundingClientRect();
     const handle = subheadingRef.current;
     if (!handle) return;
-
     const subRect = handle.getRect();
     if (!subRect) return;
-
     const targetX = subRect.left + subRect.width / 2 + 24;
     const targetY = subRect.top + subRect.height / 2 - 12;
-
-    // Fly Sayeed from idle to subheading
     setSayeedPhase("flying-to");
-
-    // First, ensure Sayeed starts at idle position
     sayeedX.jump(idleRect.left);
     sayeedY.jump(idleRect.top);
-
-    // Then animate to target (slower spring for a more deliberate walk)
     animate(sayeedX, targetX, {
-      type: "spring", stiffness: 50, damping: 10, mass: 1.5,
-      onComplete: doGrab,
+      type: "spring", stiffness: 50, damping: 10, mass: 1.5, onComplete: doGrab,
     });
     animate(sayeedY, targetY, {
       type: "spring", stiffness: 50, damping: 10, mass: 1.5,
     });
   }, [sayeedX, sayeedY, doGrab]);
 
-  // ─── Called when user starts dragging ────────────────
   const handleDragStart = useCallback(() => {
-    interventionTimer.current = setTimeout(() => {
-      triggerIntervention();
-    }, 300);
+    interventionTimer.current = setTimeout(triggerIntervention, 300);
   }, [triggerIntervention]);
 
-  // ─── Called when user releases before intervention ───
   const handleDragEnd = useCallback(() => {
     if (interventionTimer.current) {
       clearTimeout(interventionTimer.current);
@@ -184,7 +149,6 @@ function App() {
     }
   }, []);
 
-  // ─── Cleanup on unmount ──────────────────────────────
   useEffect(() => {
     return () => {
       if (interventionTimer.current) clearTimeout(interventionTimer.current);
@@ -192,7 +156,6 @@ function App() {
     };
   }, []);
 
-  // ─── GSAP entrance animations + continuous float ────
   const handleSubReady = useCallback(() => {
     document.querySelector(".glow-target")?.classList.add("glow-pulse");
     setDragChipReady(true);
@@ -200,190 +163,75 @@ function App() {
 
   useEffect(() => {
     gsap.set("#chrome-bar", { opacity: 0, y: -8 });
-    gsap.set("#floating-nav", { opacity: 0, y: -15 });
     gsap.set(badgeRef.current, { opacity: 0, y: -10 });
-    gsap.set(ctaPrimaryRef.current, { opacity: 0, y: 15, scale: 0.95 });
-    gsap.set(ctaSecondaryRef.current, { opacity: 0, y: 10 });
     gsap.set(cornerLeftRef.current, { opacity: 0 });
     gsap.set(cornerRightRef.current, { opacity: 0 });
     gsap.set("#build-status", { opacity: 0 });
 
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
-
     tl.to("#chrome-bar", { y: 0, opacity: 1, duration: 0.4 });
     tl.to("#build-status", { opacity: 1, duration: 0.3 }, "-=0.2");
-    tl.to("#floating-nav", { y: 0, opacity: 1, duration: 0.5 }, "-=0.35");
     tl.to(badgeRef.current, { y: 0, opacity: 1, duration: 0.5 }, "-=0.15");
-    tl.to({}, { duration: 2.6 });
-    tl.to(ctaPrimaryRef.current, { y: 0, opacity: 1, scale: 1, duration: 0.5 }, ">");
-    tl.to(ctaSecondaryRef.current, { y: 0, opacity: 1, duration: 0.4 }, "-=0.1");
+    tl.to({}, { duration: 0.3 });
     tl.to([cornerLeftRef.current, cornerRightRef.current], { opacity: 1, duration: 0.5 }, ">");
 
-    // After entrance completes — start continuous float animations
     const floatTweens: gsap.core.Tween[] = [];
-
     tl.call(() => {
-      // Badge float — skip GSAP, let CSS badge-float handle it
-
-      // CTA primary float
-      floatTweens.push(
-        gsap.to(ctaPrimaryRef.current, {
-          y: -3,
-          duration: 4,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-          delay: Math.random() * 1.5,
-        }),
-      );
-
-      // CTA secondary float
-      floatTweens.push(
-        gsap.to(ctaSecondaryRef.current, {
-          y: -2,
-          duration: 4.5,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-          delay: Math.random() * 2,
-        }),
-      );
-
-      // Corner left float
-      floatTweens.push(
-        gsap.to(cornerLeftRef.current, {
-          y: -2,
-          duration: 5,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-          delay: Math.random() * 2.5,
-        }),
-      );
-
-      // Corner right float
-      floatTweens.push(
-        gsap.to(cornerRightRef.current, {
-          y: -2,
-          duration: 5.5,
-          ease: "sine.inOut",
-          yoyo: true,
-          repeat: -1,
-          delay: Math.random() * 3,
-        }),
-      );
+      floatTweens.push(gsap.to(cornerLeftRef.current, { y: -2, duration: 5, ease: "sine.inOut", yoyo: true, repeat: -1, delay: Math.random() * 2.5 }));
+      floatTweens.push(gsap.to(cornerRightRef.current, { y: -2, duration: 5.5, ease: "sine.inOut", yoyo: true, repeat: -1, delay: Math.random() * 3 }));
     });
 
-    return () => {
-      tl.kill();
-      floatTweens.forEach((t) => t.kill());
-    };
+    return () => { tl.kill(); floatTweens.forEach((t) => t.kill()); };
   }, []);
 
   return (
     <>
       <ChromeBar sayeedIdleRef={sayeedIdleRef} />
-      <FloatingNav />
-
-      {/* ─── Background layers ──────────────────────────── */}
       <BackgroundGrid />
       <SyntaxTokens />
-
-      {/* ─── Global cursors (render above everything) ──── */}
       <VisitorCursor />
-      <SayeedCursor
-        springX={sayeedSpringX}
-        springY={sayeedSpringY}
-        phase={sayeedPhase}
-        message={sarcasmMsg}
-      />
-
-      <section
-        id="home"
-        className="relative z-10 flex-1 flex flex-col items-center justify-center min-h-svh px-6 pt-[120px] pb-16"
-      >
-        <div className="max-w-3xl w-full text-center">
-          {/* Badge */}
-          <div
-            ref={badgeRef}
-            className="badge-float inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-border-subtle bg-editor-surface text-text-muted text-[11px] font-mono tracking-wide mb-6"
-          >
-            building in public — 2026
-          </div>
-
-          {/* Headline */}
-          <div className="relative mb-8">
-            <HeadlineAnim />
-          </div>
-
-          {/* Subheading — draggable */}
-          <SubheadingAnim
-            ref={subheadingRef}
-            dragChipReady={dragChipReady}
-            onGlowReady={handleSubReady}
-            interventionActive={sayeedPhase !== "idle"}
-            onDragStateChange={(dragging) => {
-              if (dragging) handleDragStart();
-              else handleDragEnd();
-            }}
-          />
-
-          {/* CTAs */}
-          <div className="flex items-center justify-center gap-4 flex-wrap">
-            <motion.a
-              ref={ctaPrimaryRef}
-              href="#work"
-              className="relative inline-flex items-center gap-2 px-6 py-3 rounded-md text-[#0B0E14] text-sm font-mono font-medium overflow-hidden"
-              style={{
-                background: "linear-gradient(120deg, #FF7A45 0%, #FF7A45 35%, rgba(255,255,255,0.2) 50%, #FF7A45 65%, #FF7A45 100%)",
-                backgroundSize: "250% 100%",
-                backgroundPosition: "100% 0",
-              }}
-              whileHover={{
-                backgroundPosition: "0% 0",
-                scale: 1.04,
-                transition: { type: "spring", stiffness: 350, damping: 15 },
-              }}
-              whileTap={{ scale: 0.97 }}
-            >
-              See the work <span className="text-lg leading-none">→</span>
-            </motion.a>
-            <motion.a
-              ref={ctaSecondaryRef}
-              href="#contact"
-              className="relative inline-flex items-center gap-2 px-6 py-3 rounded-md border border-border-subtle text-text-muted text-sm font-mono font-medium overflow-hidden"
-              style={{
-                background: "linear-gradient(120deg, transparent 0%, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%, transparent 100%)",
-                backgroundSize: "250% 100%",
-                backgroundPosition: "100% 0",
-              }}
-              whileHover={{
-                backgroundPosition: "0% 0",
-                borderColor: "rgba(255,255,255,0.3)",
-                color: "#E6E6E6",
-                scale: 1.03,
-                transition: { type: "spring", stiffness: 350, damping: 15 },
-              }}
-              whileTap={{ scale: 0.97 }}
-            >
-              Book a call
-            </motion.a>
-          </div>
-
-          {/* Decorative rectangle */}
-          <div className="flex justify-center mt-8">
-            <span className="block w-6 h-1 rounded-full bg-accent/60" />
+      <SayeedCursor springX={sayeedSpringX} springY={sayeedSpringY} phase={sayeedPhase} message={sarcasmMsg} />
+      <section id="home" className="relative z-10 flex-1 flex flex-col items-center justify-center min-h-svh px-6 pt-[120px] pb-16">
+        <div className="w-full max-w-6xl mx-auto">
+          {/* Headline left + badge · Subheading + side-by-side buttons right */}
+          <div className="flex flex-col md:flex-row gap-10 md:gap-16 md:items-start">
+            <div className="md:w-1/2 text-left flex flex-col gap-6">
+              {/* Badge */}
+              <div className="relative inline-block">
+                <span className="absolute -top-2 -left-2 w-2 h-2 rounded-[2px] bg-accent border border-accent/80" />
+                <span className="absolute -top-2 -right-2 w-2 h-2 rounded-[2px] bg-accent border border-accent/80" />
+                <span className="absolute -bottom-2 -left-2 w-2 h-2 rounded-[2px] bg-accent border border-accent/80" />
+                <span className="absolute -bottom-2 -right-2 w-2 h-2 rounded-[2px] bg-accent border border-accent/80" />
+                <div ref={badgeRef} className="badge-float inline-flex items-center gap-2 rounded-md border border-accent-dim bg-[#1A1A1A]/80 backdrop-blur-xl px-5 py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.4)]">
+                  <span className="font-mono text-[12px] font-medium lowercase tracking-[0.04em] text-text-primary">est.</span>
+                  <span className="font-mono text-[12px] font-medium tracking-[0.08em] text-accent">2026</span>
+                </div>
+              </div>
+              <AnimatedHeadline />
+            </div>
+            <div className="md:w-1/2">
+              <SubheadingAnim ref={subheadingRef} dragChipReady={dragChipReady} onGlowReady={handleSubReady}
+                interventionActive={sayeedPhase !== "idle"}
+                onDragStateChange={(dragging) => { if (dragging) handleDragStart(); else handleDragEnd(); }} />
+              <div className="flex flex-wrap gap-3 mt-6">
+                <MagneticButton label="Start something →" link="#work" fill="#DC2626" textColor="#FFFFFF" sweepColor="#FFFFFF" sweepTextColor="#DC2626" radius={6} magnet={10} paddingX={24} paddingY={12} border={false}
+                  font={{ fontFamily: "JetBrains Mono, ui-monospace, monospace", fontWeight: 500, fontSize: 14, letterSpacing: "-0.01em" }} />
+                <MagneticButton label="Sneak a peek" link="#contact" fill="transparent" textColor="#9CA3AF" sweepColor="rgba(220,38,38,0.15)" sweepTextColor="#F0F0F0" radius={6} magnet={10} paddingX={24} paddingY={12} border={true}
+                  borderOptions={{ color: "rgba(255,255,255,0.12)", width: 1 }}
+                  font={{ fontFamily: "JetBrains Mono, ui-monospace, monospace", fontWeight: 500, fontSize: 14, letterSpacing: "-0.01em" }} />
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Corner copy — at the far edges of the section */}
+        {/* Corner copy */}
         <div ref={cornerLeftRef} className="absolute left-6 bottom-16 text-left">
+          <p className="text-text-muted text-[10px] font-mono uppercase tracking-[0.2em] leading-relaxed">DESIGN. BUILD. SHIP.</p>
           <p className="text-text-muted text-[10px] font-mono uppercase tracking-[0.2em] leading-relaxed">REMOTE · WORLDWIDE</p>
-          <p className="text-text-muted text-[10px] font-mono uppercase tracking-[0.2em] leading-relaxed">BASED IN BENGALURU, IN</p>
         </div>
         <div ref={cornerRightRef} className="absolute right-6 bottom-16 text-right">
-          <p className="text-text-muted text-[10px] font-mono uppercase tracking-[0.2em] leading-relaxed">OPEN FOR WORK</p>
-          <p className="text-text-muted text-[10px] font-mono uppercase tracking-[0.2em] leading-relaxed">ANY TIMEZONE, HANDLED</p>
+          <p className="text-text-muted text-[10px] font-mono uppercase tracking-[0.2em] leading-relaxed">NO FLUFF. JUST SHIP.</p>
+          <p className="text-text-muted text-[10px] font-mono uppercase tracking-[0.2em] leading-relaxed">ANY TIMEZONE. HANDLED.</p>
         </div>
       </section>
     </>
