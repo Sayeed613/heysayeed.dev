@@ -24,7 +24,7 @@ export default function MagneticButton({
   label = "Magnetic Hover",
   link = "",
   newTab = false,
-  font = { fontFamily: "Inter, system-ui, sans-serif", fontWeight: 500, fontSize: 14, lineHeight: "1em", letterSpacing: "-0.01em", textAlign: "left" },
+  font = { fontFamily: "Panchang, system-ui, sans-serif", fontWeight: 300, fontSize: 14, lineHeight: "1em", letterSpacing: "-0.01em", textAlign: "left" },
   fill = "#FFFFFF",
   textColor = "#000000",
   sweepColor = "#0000FF",

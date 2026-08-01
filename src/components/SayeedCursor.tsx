@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
 
 const ARROW_SIZE = 28;
-const SAYEED_COLOR = "#FF8A65";
+const SAYEED_COLOR = "#DC2626";
 
 interface SayeedCursorProps {
   springX: MotionValue<number>;

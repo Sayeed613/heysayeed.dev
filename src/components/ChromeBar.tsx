@@ -32,7 +32,7 @@ function LiveClock() {
   const mm = String(time.getMinutes()).padStart(2, "0");
   const ss = String(time.getSeconds()).padStart(2, "0");
   return (
-    <span className="tabular-nums text-text-muted/60 text-[11px] font-mono font-medium leading-none tracking-wide">
+    <span className="tabular-nums text-text-muted/60 text-[11px] font-sans font-light leading-none tracking-wide">
       {hh}:{mm}:{ss}
     </span>
   );
@@ -55,17 +55,23 @@ export default function ChromeBar({ sayeedIdleRef }: ChromeBarProps) {
         borderBottom: "1px solid rgba(255,255,255,0.04)",
       }}
     >
-      {/* ─── Left: status dot + logo ─── */}
+      {/* ─── Left: logo + brand ─── */}
       <div className="flex items-center gap-2.5 shrink-0">
-        <span
-          className="w-[6px] h-[6px] rounded-full bg-accent status-dot"
-          style={{ boxShadow: "0 0 6px rgba(220,38,38,0.6)" }}
+        <img
+          src="/logo.png"
+          alt="heysayeed logo"
+          className="w-5 h-5 object-contain"
         />
-        <span
-          className="text-[11px] font-mono font-medium leading-none tracking-[0.06em]"
-          style={{ color: "#9CA3AF" }}
-        >
-          heysayeed.dev
+        <span className="flex items-baseline gap-0">
+          <span
+            className="text-[14px] font-display font-bold leading-none tracking-[-0.01em]"
+            style={{ color: "#D1D5DB" }}
+          >
+            heysayeed
+          </span>
+          <span className="text-[10px] font-mono font-medium leading-none ml-[1px]" style={{ color: "#EF4444" }}>
+            .dev/
+          </span>
         </span>
       </div>
 
@@ -80,7 +86,7 @@ export default function ChromeBar({ sayeedIdleRef }: ChromeBarProps) {
                 e.preventDefault();
                 setActive(link.label);
               }}
-              className={`group relative px-3 py-1 text-[11px] font-mono leading-none rounded-full transition-all duration-300 overflow-hidden ${
+              className={`group relative px-3 py-1 text-[11px] font-sans font-light leading-none rounded-full transition-all duration-300 overflow-hidden ${
                 active === link.label
                   ? "text-accent drop-shadow-[0_0_6px_rgba(220,38,38,0.4)]"
                   : "text-text-muted hover:text-text-primary"
@@ -102,7 +108,7 @@ export default function ChromeBar({ sayeedIdleRef }: ChromeBarProps) {
 
       {/* ─── Right: status + clock + Sayeed idle ─── */}
       <div className="flex items-center gap-3 shrink-0">
-        <span className="flex items-center gap-1.5 text-[11px] font-mono leading-none font-medium" id="build-status">
+        <span className="flex items-center gap-1.5 text-[11px] font-sans font-light leading-none" id="build-status">
           <span className="text-accent/70">build: passing</span>
         </span>
 

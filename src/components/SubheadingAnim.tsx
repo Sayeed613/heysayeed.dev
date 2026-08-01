@@ -139,7 +139,7 @@ const SubheadingAnim = forwardRef<SubheadingHandle, Props>(
     const canDrag = phase === "idle" || phase === "dragging";
 
     return (
-      <div className="relative max-w-[680px] mx-auto mt-8 mb-8">
+      <div className="relative max-w-[680px]  mt-8 mb-8">
         <p className="text-center text-text-muted/50 text-[11px] font-mono tracking-wide mb-1 select-none">
           // we don't do forgetable
         </p>
@@ -196,9 +196,9 @@ const SubheadingAnim = forwardRef<SubheadingHandle, Props>(
             initial={false}
             animate="visible"
             onAnimationComplete={() => { onGlowReady?.(); }}
-            className="text-[rgba(240,240,240,0.8)] text-md sm:text-lg md:text-[24px] font-[400] leading-[1.45] tracking-[-0.02em] px-5 pt-6 pb-4 select-none"
+            className="text-[rgba(240,240,240,0.8)] text-md sm:text-lg md:text-[24px] font-[300] leading-[1.45] tracking-[-0.02em] px-5 pt-6 pb-4 select-none"
             style={{
-              fontFamily: "Inter, system-ui, sans-serif",
+              fontFamily: "Panchang, system-ui, sans-serif",
               WebkitFontSmoothing: "antialiased",
               MozOsxFontSmoothing: "grayscale",
               x: springPX,

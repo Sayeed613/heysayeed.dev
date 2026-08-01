@@ -3,12 +3,15 @@ import { motion, useMotionValue, useSpring, animate } from "framer-motion";
 import gsap from "gsap";
 import ChromeBar from "./components/ChromeBar";
 import AnimatedHeadline from "./components/AnimatedHeadline";
-import MagneticButton from "./components/MagneticButton";
 import SubheadingAnim from "./components/SubheadingAnim";
 import VisitorCursor from "./components/VisitorCursor";
 import SayeedCursor from "./components/SayeedCursor";
 import BackgroundGrid from "./components/BackgroundGrid";
 import SyntaxTokens from "./components/SyntaxTokens";
+import AboutSection from "./components/AboutSection";
+import WorksSection from "./components/WorksSection";
+import Footer from "./components/Footer";
+
 import type { SubheadingHandle } from "./components/SubheadingAnim";
 
 const SARCASM_MESSAGES = [
@@ -31,7 +34,6 @@ function App() {
   const [sayeedPhase, setSayeedPhase] = useState<SayeedPhase>("idle");
   const [sarcasmMsg, setSarcasmMsg] = useState("");
 
-  const badgeRef = useRef<HTMLDivElement>(null);
   const cornerLeftRef = useRef<HTMLDivElement>(null);
   const cornerRightRef = useRef<HTMLDivElement>(null);
   const sayeedIdleRef = useRef<HTMLDivElement>(null);
@@ -163,7 +165,6 @@ function App() {
 
   useEffect(() => {
     gsap.set("#chrome-bar", { opacity: 0, y: -8 });
-    gsap.set(badgeRef.current, { opacity: 0, y: -10 });
     gsap.set(cornerLeftRef.current, { opacity: 0 });
     gsap.set(cornerRightRef.current, { opacity: 0 });
     gsap.set("#build-status", { opacity: 0 });
@@ -171,7 +172,6 @@ function App() {
     const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
     tl.to("#chrome-bar", { y: 0, opacity: 1, duration: 0.4 });
     tl.to("#build-status", { opacity: 1, duration: 0.3 }, "-=0.2");
-    tl.to(badgeRef.current, { y: 0, opacity: 1, duration: 0.5 }, "-=0.15");
     tl.to({}, { duration: 0.3 });
     tl.to([cornerLeftRef.current, cornerRightRef.current], { opacity: 1, duration: 0.5 }, ">");
 
@@ -187,40 +187,21 @@ function App() {
   return (
     <>
       <ChromeBar sayeedIdleRef={sayeedIdleRef} />
+
       <BackgroundGrid />
       <SyntaxTokens />
       <VisitorCursor />
       <SayeedCursor springX={sayeedSpringX} springY={sayeedSpringY} phase={sayeedPhase} message={sarcasmMsg} />
-      <section id="home" className="relative z-10 flex-1 flex flex-col items-center justify-center min-h-svh px-6 pt-[120px] pb-16">
-        <div className="w-full max-w-6xl mx-auto">
-          {/* Headline left + badge · Subheading + side-by-side buttons right */}
-          <div className="flex flex-col md:flex-row gap-10 md:gap-16 md:items-start">
-            <div className="md:w-1/2 text-left flex flex-col gap-6">
-              {/* Badge */}
-              <div className="relative inline-block">
-                <span className="absolute -top-2 -left-2 w-2 h-2 rounded-[2px] bg-accent border border-accent/80" />
-                <span className="absolute -top-2 -right-2 w-2 h-2 rounded-[2px] bg-accent border border-accent/80" />
-                <span className="absolute -bottom-2 -left-2 w-2 h-2 rounded-[2px] bg-accent border border-accent/80" />
-                <span className="absolute -bottom-2 -right-2 w-2 h-2 rounded-[2px] bg-accent border border-accent/80" />
-                <div ref={badgeRef} className="badge-float inline-flex items-center gap-2 rounded-md border border-accent-dim bg-[#1A1A1A]/80 backdrop-blur-xl px-5 py-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.4)]">
-                  <span className="font-mono text-[12px] font-medium lowercase tracking-[0.04em] text-text-primary">est.</span>
-                  <span className="font-mono text-[12px] font-medium tracking-[0.08em] text-accent">2026</span>
-                </div>
-              </div>
-              <AnimatedHeadline />
-            </div>
-            <div className="md:w-1/2">
-              <SubheadingAnim ref={subheadingRef} dragChipReady={dragChipReady} onGlowReady={handleSubReady}
-                interventionActive={sayeedPhase !== "idle"}
-                onDragStateChange={(dragging) => { if (dragging) handleDragStart(); else handleDragEnd(); }} />
-              <div className="flex flex-wrap gap-3 mt-6">
-                <MagneticButton label="Start something →" link="#work" fill="#DC2626" textColor="#FFFFFF" sweepColor="#FFFFFF" sweepTextColor="#DC2626" radius={6} magnet={10} paddingX={24} paddingY={12} border={false}
-                  font={{ fontFamily: "JetBrains Mono, ui-monospace, monospace", fontWeight: 500, fontSize: 14, letterSpacing: "-0.01em" }} />
-                <MagneticButton label="Sneak a peek" link="#contact" fill="transparent" textColor="#9CA3AF" sweepColor="rgba(220,38,38,0.15)" sweepTextColor="#F0F0F0" radius={6} magnet={10} paddingX={24} paddingY={12} border={true}
-                  borderOptions={{ color: "rgba(255,255,255,0.12)", width: 1 }}
-                  font={{ fontFamily: "JetBrains Mono, ui-monospace, monospace", fontWeight: 500, fontSize: 14, letterSpacing: "-0.01em" }} />
-              </div>
-            </div>
+      <section id="home" className="relative z-10 flex-1 min-h-svh flex flex-col justify-center px-6 md:px-20 pt-[100px] pb-24">
+        <div className="w-full max-w-3xl">
+          {/* Headline — full left */}
+          <AnimatedHeadline />
+
+          {/* Subheading — aligned left with heading */}
+          <div className="mt-6">
+            <SubheadingAnim ref={subheadingRef} dragChipReady={dragChipReady} onGlowReady={handleSubReady}
+              interventionActive={sayeedPhase !== "idle"}
+              onDragStateChange={(dragging) => { if (dragging) handleDragStart(); else handleDragEnd(); }} />
           </div>
         </div>
 
@@ -234,6 +215,19 @@ function App() {
           <p className="text-text-muted text-[10px] font-mono uppercase tracking-[0.2em] leading-relaxed">ANY TIMEZONE. HANDLED.</p>
         </div>
       </section>
+
+      <WorksSection />
+
+      <AboutSection />
+
+      <section id="contact" className="relative z-10 min-h-screen flex items-center justify-center px-6">
+        <div className="text-center">
+          <p className="text-text-muted text-[11px] font-mono uppercase tracking-[0.2em] mb-4">// contact</p>
+          <h2 className="font-display text-4xl md:text-6xl font-bold text-text-primary/20">Let's Talk</h2>
+        </div>
+      </section>
+
+      <Footer />
     </>
   );
 }
